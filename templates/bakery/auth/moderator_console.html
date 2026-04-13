@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Moderator Console | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container panel">
+    <h1>Moderator Console</h1>
+    <p class="form-inline-note">This area is restricted to moderator and admin roles.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Event</th>
+            <th>Message</th>
+            <th>IP</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.user.username }}</td>
+              <td>{{ event.get_event_type_display }}</td>
+              <td>{{ event.message }}</td>
+              <td>{{ event.ip_address|default:'-' }}</td>
+              <td>{{ event.created_at|date:'Y-m-d H:i' }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5">No security events available.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

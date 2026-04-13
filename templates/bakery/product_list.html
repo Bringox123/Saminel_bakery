@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Saminel Flame | Product Catalog{% endblock %}
+
+{% block content %}
+<section id="shop" class="section catalog-page section-shop">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Online Catalog</p>
+      <h1>Shop the full Saminel Flame menu</h1>
+      <p>
+        The homepage catalog has been moved here and merged with full product details.
+        Browse by category, view prices and descriptions, and open each product page.
+      </p>
+    </div>
+
+    {% regroup products by category as grouped_products %}
+    {% for group in grouped_products %}
+      <section class="catalog-category">
+        <div class="section-head">
+          <p class="eyebrow">Category</p>
+          <h2>{{ group.grouper.name }}</h2>
+          <p>Explore our {{ group.grouper.name|lower }} collection.</p>
+        </div>
+
+        <div class="product-grid">
+          {% for product in group.list %}
+            {% cycle 'https://images.unsplash.com/photo-1481391319762-47dff72954d9?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1587241321921-91a834d6d191?auto=format&fit=crop&w=900&q=80' as catalog_image silent %}
+            <article class="product-card animate-rise">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }} product image" loading="lazy">
+              {% else %}
+                <img src="{{ catalog_image }}" alt="{{ product.name }} preview image" loading="lazy">
+              {% endif %}
+
+              <div class="product-card-body">
+                <p class="muted">{{ product.category.name }}</p>
+                <h3><a href="{% url 'bakery:product_detail' product.pk %}">{{ product.name }}</a></h3>
+                <p>{{ product.description|truncatechars:170 }}</p>
+                <div class="product-card-foot">
+                  <strong>GHS {{ product.price }}</strong>
+                  <a class="text-link" href="{% url 'bakery:product_detail' product.pk %}">Product page</a>
+                </div>
+                {% if not product.image %}
+                  <p class="muted-small">Upload a custom image in Django Admin to replace this preview.</p>
+                {% endif %}
+              </div>
+            </article>
+          {% empty %}
+            <article class="empty-card">
+              <h3>No products in this category yet</h3>
+              <p>Use Django Admin to add more products here.</p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% empty %}
+      <article class="empty-card">
+        <h3>No products available yet</h3>
+        <p>Run the catalog seed command or add products from Django Admin.</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

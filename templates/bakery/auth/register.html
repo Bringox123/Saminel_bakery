@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Sign Up | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="container">
+    <article class="auth-card">
+      <h1>Create your account</h1>
+      <p class="form-inline-note">Sign up with email and password. Username is optional and can be generated for you.</p>
+
+      {% if form.errors %}
+        <div class="form-errors">
+          Please fix the highlighted fields below.
+        </div>
+      {% endif %}
+
+      <form method="post" class="auth-grid auth-grid-two">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label for="id_email">Email</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+
+        <div class="field-group">
+          <label for="id_username">Username (optional)</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+
+        <div class="field-group">
+          <label for="id_password1">Password</label>
+          {{ form.password1 }}
+          {{ form.password1.errors }}
+        </div>
+
+        <div class="field-group">
+          <label for="id_password2">Confirm Password</label>
+          {{ form.password2 }}
+          {{ form.password2.errors }}
+        </div>
+
+        <div class="field-group" style="grid-column: 1 / -1;">
+          <label>
+            {{ form.accept_terms }} I agree to the terms and conditions.
+          </label>
+          {{ form.accept_terms.errors }}
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <button type="submit" class="btn btn-primary">Create Account</button>
+        </div>
+      </form>
+
+      <p class="form-inline-note">Already registered? <a href="{% url 'bakery:login' %}">Log in here</a>.</p>
+
+      {% if google_social_login_enabled %}
+        <p>
+          <a class="btn btn-social-google" href="{% provider_login_url 'google' process='login' %}">Sign up with Google</a>
+        </p>
+      {% endif %}
+    </article>
+  </div>
+</section>
+{% endblock %}

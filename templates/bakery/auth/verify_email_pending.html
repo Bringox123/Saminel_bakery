@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="container">
+    <article class="auth-card">
+      <h1>Check your email</h1>
+      {% if pending_email %}
+        <p>A verification link was sent to <strong>{{ pending_email }}</strong>. Open your inbox and click the link to activate your account.</p>
+      {% else %}
+        <p>We could not find a pending verification account in this session. Try signing up again.</p>
+      {% endif %}
+
+      <form method="post" action="{% url 'bakery:resend_verification_email' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Resend verification email</button>
+      </form>
+
+      <p class="form-inline-note">
+        Already verified? <a href="{% url 'bakery:login' %}">Login</a>
+      </p>
+    </article>
+  </div>
+</section>
+{% endblock %}

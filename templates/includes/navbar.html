@@ -1,0 +1,44 @@
+{% load static %}
+
+<nav class="navbar" aria-label="Main navigation">
+  <a href="{% url 'bakery:home' %}" class="logo">
+    <img src="{% static 'bakery/images/saminel-flame-logo.png' %}" alt="" loading="eager" decoding="async" aria-hidden="true">
+    <span>Saminel Flame</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="{% url 'bakery:product_list' %}#shop">Menu</a></li>
+    <li><a href="{% url 'bakery:home' %}#story">Story</a></li>
+    <li><a href="{% url 'bakery:home' %}#gallery">Gallery</a></li>
+  </ul>
+
+  <div class="user-actions">
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'bakery:profile_settings' %}" class="account-link" aria-label="Account">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true" focusable="false">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>{{ request.user.first_name|default:"Account" }}</span>
+      </a>
+    {% else %}
+      <a href="{% url 'bakery:login' %}" class="account-link" aria-label="Login">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true" focusable="false">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+          <polyline points="10 17 15 12 10 7"></polyline>
+          <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        <span>Login</span>
+      </a>
+    {% endif %}
+
+    <a href="{% url 'bakery:cart' %}" class="cart-link" aria-label="Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true" focusable="false">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+      <span class="cart-badge">{{ cart_item_count|default:"0" }}</span>
+    </a>
+  </div>
+</nav>

@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Saminel Flame{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'bakery/styles.css' %}">
+</head>
+<body>
+  <header class="site-header" id="top">
+    {% include 'includes/navbar.html' %}
+  </header>
+
+  {% block hero_banner %}{% endblock %}
+
+  <main class="site-main">
+    {% if messages %}
+      <div class="container flash-stack" aria-live="polite">
+        {% for message in messages %}
+          <p class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div class="container footer-grid">
+      <section>
+        <h3>Saminel Flame</h3>
+        <p>Artisan bread, signature cakes, and flaky pastries with a polished online shopping experience.</p>
+      </section>
+      <section>
+        <h4>Visit</h4>
+        <p>145 Ember Street, Downtown</p>
+        <p>Open daily: 7:00 AM - 8:00 PM</p>
+      </section>
+      <section>
+        <h4>Contact</h4>
+        <p><a href="tel:+1234567890">+1 (234) 567-890</a></p>
+        <p><a href="mailto:hello@saminelflame.com">hello@saminelflame.com</a></p>
+      </section>
+    </div>
+    <p class="footer-note">Copyright {% now "Y" %} Saminel Flame. Crafted for easy bakery shopping.</p>
+  </footer>
+
+  <script>
+    (function () {
+      var header = document.querySelector('.site-header');
+      var hero = document.querySelector('.hero');
+      var isTicking = false;
+
+      function applyScrollEffects() {
+        if (!header && !hero) {
+          isTicking = false;
+          return;
+        }
+
+        if (header) {
+          if (window.scrollY > 24) {
+            header.classList.add('is-scrolled');
+          } else {
+            header.classList.remove('is-scrolled');
+          }
+        }
+
+        if (hero) {
+          var fadeDistance = Math.max(hero.offsetHeight * 0.78, 1);
+          var progress = Math.min(Math.max(window.scrollY / fadeDistance, 0), 1);
+          hero.style.setProperty('--hero-fade-progress', progress.toFixed(3));
+          hero.classList.toggle('hero-faded', progress > 0.98);
+        }
+
+        isTicking = false;
+      }
+
+      function requestScrollEffects() {
+        if (isTicking) {
+          return;
+        }
+
+        isTicking = true;
+        window.requestAnimationFrame(applyScrollEffects);
+      }
+
+      window.addEventListener('scroll', requestScrollEffects, { passive: true });
+      window.addEventListener('resize', requestScrollEffects);
+      requestScrollEffects();
+    })();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

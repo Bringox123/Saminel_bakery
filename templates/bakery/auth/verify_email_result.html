@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verification | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="container">
+    <article class="auth-card">
+      {% if is_valid %}
+        <h1>Email verified</h1>
+        <p>Your account is now active and ready to use.</p>
+        <p><a class="btn btn-primary" href="{% url 'bakery:dashboard' %}">Go to dashboard</a></p>
+      {% else %}
+        <h1>Verification failed</h1>
+        <p>This verification link is invalid or expired.</p>
+        <p><a class="btn btn-primary" href="{% url 'bakery:email_verification_pending' %}">Request another email</a></p>
+      {% endif %}
+    </article>
+  </div>
+</section>
+{% endblock %}

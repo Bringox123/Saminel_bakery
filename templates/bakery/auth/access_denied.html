@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Denied | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="container">
+    <article class="auth-card">
+      <h1>Access denied</h1>
+      <p>You do not have permission to access this area.</p>
+      <p><a class="btn btn-primary" href="{% url 'bakery:dashboard' %}">Go to dashboard</a></p>
+    </article>
+  </div>
+</section>
+{% endblock %}

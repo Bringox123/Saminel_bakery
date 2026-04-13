@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Saminel Flame{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container account-grid">
+    <article class="panel">
+      <h2>Your Dashboard</h2>
+      <p class="form-inline-note">Welcome, {{ request.user.get_full_name|default:request.user.username }}.</p>
+      <p class="muted-small">Role: {{ profile.get_role_display }} | Email verified: {{ profile.email_verified|yesno:'Yes,No' }}</p>
+      <p>
+        <a class="btn btn-primary" href="{% url 'bakery:profile_settings' %}">Account Settings</a>
+        <a class="btn btn-ghost" href="{% url 'bakery:product_list' %}">Browse Catalog</a>
+      </p>
+
+      <h3>Past Orders / Order History</h3>
+      {% if orders %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+                <tr>
+                  <td>{{ order.order_number }}</td>
+                  <td>{{ order.get_status_display }}</td>
+                  <td>GHS {{ order.total_amount }}</td>
+                  <td>{{ order.placed_at|date:'Y-m-d H:i' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="form-inline-note">No past orders yet.</p>
+      {% endif %}
+    </article>
+
+    <aside class="panel">
+      <h3>Saved Addresses</h3>
+      <ul class="stack-list">
+        {% for address in addresses %}
+          <li>
+            <strong>{{ address.label }}</strong> {% if address.is_default %}(Default){% endif %}
+            <p class="muted-small">{{ address.full_name }} - {{ address.line1 }}, {{ address.city }}, {{ address.country }}</p>
+          </li>
+        {% empty %}
+          <li>No saved addresses.</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Saved Payment Methods</h3>
+      <ul class="stack-list">
+        {% for method in payment_methods %}
+          <li>
+            <strong>{{ method.get_method_type_display }}</strong> {% if method.is_default %}(Default){% endif %}
+            <p class="muted-small">{{ method.provider }}{% if method.last4 %} ****{{ method.last4 }}{% endif %}</p>
+          </li>
+        {% empty %}
+          <li>No saved payment methods.</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Security Activity</h3>
+      <ul class="stack-list">
+        {% for event in security_events %}
+          <li>
+            <strong>{{ event.get_event_type_display }}</strong>
+            <p class="muted-small">{{ event.message }} - {{ event.created_at|date:'Y-m-d H:i' }}</p>
+          </li>
+        {% empty %}
+          <li>No recent security activity.</li>
+        {% endfor %}
+      </ul>
+    </aside>
+  </div>
+</section>
+{% endblock %}

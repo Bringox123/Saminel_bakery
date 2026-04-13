@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Saminel Flame | Home{% endblock %}
+
+{% block hero_banner %}
+<section class="hero">
+  <div class="container hero-layout">
+    <div class="hero-copy reveal">
+      <p class="eyebrow">Saminel Flame Ecommerce Bakery</p>
+      <h1>Order handcrafted bakery favorites with a fast, joyful online experience.</h1>
+      <p>
+        Saminel Flame combines artisan baking with modern ecommerce. Browse fresh breads,
+        premium pastries, and celebration cakes, then check out in minutes.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{% url 'bakery:product_list' %}#shop">Shop bestsellers</a>
+        <a class="btn btn-ghost" href="#story">Discover our story</a>
+      </div>
+      <ul class="hero-badges">
+        <li>Secure online checkout</li>
+        <li>Same-day local delivery</li>
+        <li>Custom cake pre-orders</li>
+      </ul>
+    </div>
+
+    <div class="hero-collage reveal">
+      <img src="https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=800&q=80" alt="Fresh artisan croissants in a basket" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1483695028939-5bb13f8648b0?auto=format&fit=crop&w=800&q=80" alt="Bakery worker glazing pastries" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=800&q=80" alt="Colorful pastry display at Saminel Flame" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" alt="Warm bakery cafe corner" loading="lazy">
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container info-cards">
+    <article class="info-card animate-rise">
+      <h3>Built for Bakery Ecommerce</h3>
+      <p>
+        Saminel Flame is designed for online bakery shopping with quick discovery, smooth checkout,
+        and order confidence from cart to doorstep.
+      </p>
+    </article>
+    <article class="info-card animate-rise">
+      <h3>Visual Product Browsing</h3>
+      <p>
+        Every section uses rich food imagery so customers can explore breads, cakes, and pastries
+        through an appetizing, mobile-first storefront.
+      </p>
+    </article>
+    <article class="info-card animate-rise">
+      <h3>Fast Fulfillment Promise</h3>
+      <p>
+        Daily baking slots and real-time preparation priorities keep online orders moving quickly,
+        whether pickup, delivery, or custom event orders.
+      </p>
+    </article>
+  </div>
+</section>
+
+<section id="featured" class="section section-featured">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Trending Products</p>
+      <h2>Featured flames from today&apos;s oven</h2>
+      <p>Top customer picks that define the Saminel Flame ecommerce experience.</p>
+    </div>
+    <div class="product-grid">
+    {% for product in featured_products %}
+      {% cycle 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=900&q=80' 'https://images.unsplash.com/photo-1530610476181-d83430b64dcd?auto=format&fit=crop&w=900&q=80' as featured_image silent %}
+      <article class="product-card animate-rise">
+        <img src="{{ featured_image }}" alt="{{ product.name }} at Saminel Flame" loading="lazy">
+        <div class="product-card-body">
+          <p class="muted">{{ product.category.name }}</p>
+          <h3><a href="{% url 'bakery:product_detail' product.pk %}">{{ product.name }}</a></h3>
+          <p>{{ product.description|truncatechars:120 }}</p>
+          <div class="product-card-foot">
+            <strong>${{ product.price }}</strong>
+            <a class="text-link" href="{% url 'bakery:product_detail' product.pk %}">View details</a>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <article class="empty-card">
+        <h3>No featured products yet</h3>
+        <p>Add items in admin and mark them as featured to populate this section.</p>
+      </article>
+    {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="gallery" class="section section-gallery">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Bakery Gallery</p>
+      <h2>Visual stories baked into every product</h2>
+      <p>Inside Saminel Flame: premium ingredients, glowing ovens, and happy customer moments.</p>
+    </div>
+    <div class="image-mosaic">
+      <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" alt="Fresh bread loaves on a wooden table" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=900&q=80" alt="Sourdough bread with flour dust" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1523294587484-bae6cc870010?auto=format&fit=crop&w=900&q=80" alt="Bakery cake display" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=900&q=80" alt="Freshly iced donuts" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1579697096985-41fe1430e5df?auto=format&fit=crop&w=900&q=80" alt="Baker preparing dough" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=900&q=80" alt="Cupcake arrangement" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=900&q=80" alt="Pastries on shelves" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1612203985729-70726954388c?auto=format&fit=crop&w=900&q=80" alt="Coffee and cinnamon roll" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section section-shop">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Menu</p>
+      <h2>Explore our full online catalog</h2>
+      <p>
+        <a class="btn btn-primary" href="{% url 'bakery:product_list' %}#shop">Go to Catalog</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="story" class="section section-story">
+  <div class="container story-layout">
+    <div>
+      <p class="eyebrow">About Saminel Flame</p>
+      <h2>A neighborhood bakery turned full ecommerce experience</h2>
+      <p>
+        What began as a single stone oven now powers a complete online bakery platform. Saminel Flame
+        helps customers discover products visually, order with confidence, and celebrate with fresh bakes
+        delivered with care.
+      </p>
+      <p>
+        From family breakfasts to event cakes, our mission is simple: make premium bakery shopping delightful,
+        fast, and reliable on every screen.
+      </p>
+      <a class="btn btn-primary" href="#top">Back to top</a>
+    </div>
+    <div class="story-image-wrap">
+      <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=1000&q=80" alt="Saminel Flame bakery counter and pastry showcase" loading="lazy">
+    </div>
+  </div>
+</section>
+{% endblock %}
