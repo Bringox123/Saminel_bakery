@@ -57,3 +57,18 @@ class BakeryViewsTests(TestCase):
         self.assertEqual(data['status'], 'ok')
         self.assertIn('LOCAL-TEST-001', data['synced_client_ids'])
 
+    def test_user_registration(self):
+        response = self.client.post(
+            reverse('bakery:register'),
+            data={
+                'email': 'customer@example.com',
+                'username': 'customer1',
+                'password1': 'Saminel@2026!',
+                'password2': 'Saminel@2026!',
+                'accept_terms': 'on',
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.assertTrue(User.objects.filter(email='customer@example.com').exists())
