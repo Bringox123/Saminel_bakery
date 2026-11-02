@@ -24,3 +24,36 @@ class BakeryViewsTests(TestCase):
         response = self.client.get(reverse('bakery:product_detail', args=[product.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, product.name)
+
+    def test_pos_terminal_renders(self):
+        response = self.client.get(reverse('bakery:pos_terminal'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Offline-First Point of Sale')
+
+    def test_cart_page_renders(self):
+        response = self.client.get(reverse('bakery:cart'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Your Bakery Cart')
+
+    def test_offline_order_sync_endpoint(self):
+        import json
+        payload = {
+            'orders': [
+                {
+                    'clientOrderId': 'LOCAL-TEST-001',
+                    'totalAmount': '15.00',
+                    'notes': 'Counter pickup',
+                    'items': [{'name': 'Sourdough Loaf', 'quantity': 2, 'price': 7.5}],
+                }
+            ]
+        }
+        response = self.client.post(
+            reverse('bakery:sync_offline_orders'),
+            data=json.dumps(payload),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'ok')
+        self.assertIn('LOCAL-TEST-001', data['synced_client_ids'])
+

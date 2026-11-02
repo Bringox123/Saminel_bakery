@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Saminel Flame | Your Cart &amp; Offline Checkout{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Order Summary</p>
+      <h1>Your Bakery Cart</h1>
+      <p>Items are persisted locally in IndexedDB so you never lose your order, even if your connection drops.</p>
+    </div>
+
+    <div class="card" style="padding:1.5rem;">
+      <div id="cart-items-list" style="display:flex;flex-direction:column;gap:0.85rem;"></div>
+      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,0.12);display:flex;justify-content:space-between;align-items:center;">
+        <strong>Subtotal</strong>
+        <strong id="cart-subtotal">GHS 0.00</strong>
+      </div>
+      <div style="margin-top:1rem;">
+        <label for="cart-order-notes" class="muted-small">Delivery / Pickup Notes</label>
+        <textarea
+          id="cart-order-notes"
+          rows="2"
+          placeholder="Add delivery instructions or pickup time..."
+          style="width:100%;margin-top:0.35rem;padding:0.6rem;border-radius:6px;border:1px solid rgba(0,0,0,0.2);"
+        ></textarea>
+      </div>
+      <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.75rem;">
+        <button type="button" id="cart-checkout-btn" class="btn btn-primary">Place Order (Offline-Resilient)</button>
+        <a href="{% url 'bakery:product_list' %}" class="btn btn-ghost">Continue Shopping</a>
+      </div>
+      <p id="cart-checkout-status" class="muted-small" style="margin-top:0.75rem;" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var pos = window.SaminelOfflinePOS;
+    if (!pos) return;
+    var listEl = document.getElementById('cart-items-list');
+    var subtotalEl = document.getElementById('cart-subtotal');
+    var statusEl = document.getElementById('cart-checkout-status');
+    var notesEl = document.getElementById('cart-order-notes');
+
+    function renderCart() {
+      var items = pos.getCart();
+      if (!items.length) {
+        listEl.innerHTML = '<p class="muted">Your cart is currently empty. Browse the menu to add fresh bakery items.</p>';
+        subtotalEl.textContent = 'GHS 0.00';
+        return;
+      }
+      var sum = 0;
+      listEl.innerHTML = items.map(function (item) {
+        var sub = item.price * item.quantity;
+        sum += sub;
+        return (
+          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+            '<div><strong>' + item.name + '</strong> <span class="muted-small">(GHS ' + item.price.toFixed(2) + ' each)</span></div>' +
+            '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+              '<button type="button" class="btn btn-ghost cart-qty-btn" data-id="' + item.productId + '" data-delta="-1">-</button>' +
+              '<span>' + item.quantity + '</span>' +
+              '<button type="button" class="btn btn-ghost cart-qty-btn" data-id="' + item.productId + '" data-delta="1">+</button>' +
+              '<strong>GHS ' + sub.toFixed(2) + '</strong>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+      subtotalEl.textContent = 'GHS ' + sum.toFixed(2);
+    }
+
+    listEl.addEventListener('click', function (e) {
+      var btn = e.target.closest('.cart-qty-btn');
+      if (!btn) return;
+      pos.updateQuantity(btn.getAttribute('data-id'), parseInt(btn.getAttribute('data-delta'), 10));
+      renderCart();
+    });
+
+    document.getElementById('cart-checkout-btn').addEventListener('click', function () {
+      var items = pos.getCart();
+      if (!items.length) {
+        statusEl.textContent = 'Your cart is empty.';
+        return;
+      }
+      var sum = items.reduce(function (acc, i) { return acc + i.price * i.quantity; }, 0);
+      pos.queueOfflineOrder({
+        items: items,
+        totalAmount: sum.toFixed(2),
+        notes: notesEl.value
+      }).then(function (rec) {
+        pos.clearCart();
+        notesEl.value = '';
+        renderCart();
+        statusEl.textContent = 'Order ' + rec.clientOrderId + ' saved to IndexedDB and queued for synchronization.';
+        return pos.syncQueuedOrders();
+      }).then(function (res) {
+        if (res && res.synced > 0) {
+          statusEl.textContent = 'Order placed and synced with Saminel Bakery!';
+        }
+      });
+    });
+
+    renderCart();
+  });
+</script>
+{% endblock %}

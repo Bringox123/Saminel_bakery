@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Saminel Flame | Offline-First POS Terminal{% endblock %}
+
+{% block content %}
+<section class="section pos-section">
+  <div class="container">
+    <div class="section-head" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+      <div>
+        <p class="eyebrow">Counter &amp; Storefront POS</p>
+        <h1>Offline-First Point of Sale</h1>
+        <p>Tap products to build an order. Orders queue in IndexedDB when offline and auto-sync when connectivity returns.</p>
+      </div>
+      <div>
+        <span id="pos-connection-badge" class="btn btn-ghost" style="pointer-events:none;font-weight:600;">
+          ● Online &amp; Synced
+        </span>
+        <button type="button" id="pos-sync-now-btn" class="btn btn-primary" style="margin-left:0.5rem;">
+          Sync Queue (<span id="pos-queue-count">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <div style="margin:1.25rem 0;display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;">
+      <input
+        type="search"
+        id="pos-search-input"
+        placeholder="Search bread, pastries, cakes, drinks..."
+        aria-label="Search POS products"
+        style="padding:0.65rem 1rem;border-radius:8px;border:1px solid rgba(0,0,0,0.18);min-width:240px;flex:1;"
+      >
+      <button type="button" class="btn btn-primary pos-cat-btn" data-category="all">All Items</button>
+      {% for cat in categories %}
+        <button type="button" class="btn btn-ghost pos-cat-btn" data-category="{{ cat.name|escape }}">{{ cat.name }}</button>
+      {% endfor %}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;align-items:start;">
+      <div class="product-grid" id="pos-product-grid" style="grid-column:span 2;">
+        {% for product in products %}
+          <article
+            class="product-card pos-grid-item"
+            data-category="{{ product.category.name|escape }}"
+            data-name="{{ product.name|lower|escape }}"
+          >
+            <div class="product-card-body">
+              <p class="muted">{{ product.category.name }}</p>
+              <h3>{{ product.name }}</h3>
+              <p class="muted-small">{{ product.description|truncatechars:80 }}</p>
+              <div class="product-card-foot" style="margin-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+                <strong>GHS {{ product.price }}</strong>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  data-add-to-cart
+                  data-product-id="{{ product.pk }}"
+                  data-product-name="{{ product.name|escape }}"
+                  data-product-price="{{ product.price }}"
+                  data-product-category="{{ product.category.name|escape }}"
+                >
+                  + Add
+                </button>
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <article class="empty-card">
+            <h3>No catalog items</h3>
+            <p>Run <code>python manage.py seed_catalog</code> to populate POS products.</p>
+          </article>
+        {% endfor %}
+      </div>
+
+      <aside class="card" style="position:sticky;top:5.5rem;padding:1.25rem;">
+        <h2>Current Ticket</h2>
+        <div id="pos-ticket-items" style="margin:1rem 0;display:flex;flex-direction:column;gap:0.65rem;"></div>
+        <div style="border-top:1px solid rgba(0,0,0,0.12);padding-top:0.75rem;margin-top:0.75rem;">
+          <p style="display:flex;justify-content:space-between;font-size:1.15rem;">
+            <span>Total:</span>
+            <strong id="pos-ticket-total">GHS 0.00</strong>
+          </p>
+          <label for="pos-order-notes" class="muted-small" style="display:block;margin-top:0.75rem;">Order / Pickup Notes</label>
+          <textarea
+            id="pos-order-notes"
+            rows="2"
+            placeholder="Table number, customer name, or custom icing note..."
+            style="width:100%;margin-top:0.35rem;padding:0.5rem;border-radius:6px;border:1px solid rgba(0,0,0,0.2);"
+          ></textarea>
+          <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+            <button type="button" id="pos-submit-order" class="btn btn-primary" style="flex:1;">Complete Order</button>
+            <button type="button" id="pos-clear-order" class="btn btn-ghost">Clear</button>
+          </div>
+          <p id="pos-status-msg" class="muted-small" style="margin-top:0.65rem;" aria-live="polite"></p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var pos = window.SaminelOfflinePOS;
+    if (!pos) return;
+
+    var ticketContainer = document.getElementById('pos-ticket-items');
+    var ticketTotal = document.getElementById('pos-ticket-total');
+    var queueCountEl = document.getElementById('pos-queue-count');
+    var connBadge = document.getElementById('pos-connection-badge');
+    var statusMsg = document.getElementById('pos-status-msg');
+    var notesInput = document.getElementById('pos-order-notes');
+    var activeCategory = 'all';
+
+    function renderTicket() {
+      var cart = pos.getCart();
+      if (!cart.length) {
+        ticketContainer.innerHTML = '<p class="muted">No items on ticket yet.</p>';
+        ticketTotal.textContent = 'GHS 0.00';
+        return;
+      }
+      var total = 0;
+      ticketContainer.innerHTML = cart.map(function (item) {
+        var lineTotal = item.price * item.quantity;
+        total += lineTotal;
+        return (
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">' +
+            '<div><strong>' + item.name + '</strong><br><span class="muted-small">GHS ' + item.price.toFixed(2) + ' x ' + item.quantity + '</span></div>' +
+            '<div style="display:flex;align-items:center;gap:0.35rem;">' +
+              '<button type="button" class="btn btn-ghost pos-qty-btn" data-id="' + item.productId + '" data-delta="-1" style="padding:0.2rem 0.55rem;">-</button>' +
+              '<span>' + item.quantity + '</span>' +
+              '<button type="button" class="btn btn-ghost pos-qty-btn" data-id="' + item.productId + '" data-delta="1" style="padding:0.2rem 0.55rem;">+</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+      ticketTotal.textContent = 'GHS ' + total.toFixed(2);
+    }
+
+    function refreshQueueStatus() {
+      connBadge.textContent = navigator.onLine ? '● Online & Ready' : '● Offline Mode (IndexedDB)';
+      pos.getQueuedOrders().then(function (queued) {
+        queueCountEl.textContent = String(queued.length);
+      });
+    }
+
+    ticketContainer.addEventListener('click', function (e) {
+      var btn = e.target.closest('.pos-qty-btn');
+      if (!btn) return;
+      pos.updateQuantity(btn.getAttribute('data-id'), parseInt(btn.getAttribute('data-delta'), 10));
+      renderTicket();
+    });
+
+    document.body.addEventListener('click', function (e) {
+      if (e.target.closest('[data-add-to-cart]')) {
+        setTimeout(renderTicket, 20);
+      }
+    });
+
+    document.getElementById('pos-clear-order').addEventListener('click', function () {
+      pos.clearCart();
+      renderTicket();
+    });
+
+    document.getElementById('pos-submit-order').addEventListener('click', function () {
+      var cart = pos.getCart();
+      if (!cart.length) {
+        statusMsg.textContent = 'Add at least one item before completing an order.';
+        return;
+      }
+      var total = cart.reduce(function (s, i) { return s + i.price * i.quantity; }, 0);
+      pos.queueOfflineOrder({
+        items: cart,
+        totalAmount: total.toFixed(2),
+        notes: notesInput.value
+      }).then(function (record) {
+        pos.clearCart();
+        notesInput.value = '';
+        renderTicket();
+        statusMsg.textContent = 'Queued order ' + record.clientOrderId + ' in IndexedDB.';
+        return pos.syncQueuedOrders();
+      }).then(function (syncRes) {
+        if (syncRes && syncRes.synced > 0) {
+          statusMsg.textContent = 'Order synced to server successfully!';
+        }
+        refreshQueueStatus();
+      });
+    });
+
+    document.getElementById('pos-sync-now-btn').addEventListener('click', function () {
+      pos.syncQueuedOrders().then(function (res) {
+        statusMsg.textContent = res.synced ? ('Synced ' + res.synced + ' queued order(s).') : 'Queue up to date.';
+        refreshQueueStatus();
+      });
+    });
+
+    function filterGrid() {
+      var query = (document.getElementById('pos-search-input').value || '').toLowerCase().trim();
+      document.querySelectorAll('.pos-grid-item').forEach(function (card) {
+        var cat = card.getAttribute('data-category');
+        var name = card.getAttribute('data-name') || '';
+        var matchesCat = activeCategory === 'all' || cat === activeCategory;
+        var matchesQuery = !query || name.indexOf(query) !== -1;
+        card.style.display = (matchesCat && matchesQuery) ? '' : 'none';
+      });
+    }
+
+    document.getElementById('pos-search-input').addEventListener('input', filterGrid);
+    document.querySelectorAll('.pos-cat-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeCategory = btn.getAttribute('data-category');
+        filterGrid();
+      });
+    });
+
+    window.addEventListener('online', refreshQueueStatus);
+    window.addEventListener('offline', refreshQueueStatus);
+    renderTicket();
+    refreshQueueStatus();
+  });
+</script>
+{% endblock %}

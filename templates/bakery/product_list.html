@@ -39,7 +39,7 @@
                 <p>{{ product.description|truncatechars:170 }}</p>
                 <div class="product-card-foot">
                   <strong>GHS {{ product.price }}</strong>
-                  <a class="text-link" href="{% url 'bakery:product_detail' product.pk %}">Product page</a>
+                  <button type="button" class="btn btn-primary" data-add-to-cart data-product-id="{{ product.pk }}" data-product-name="{{ product.name|escape }}" data-product-price="{{ product.price }}" data-product-category="{{ product.category.name|escape }}">+ Add to Cart</button>
                 </div>
                 {% if not product.image %}
                   <p class="muted-small">Upload a custom image in Django Admin to replace this preview.</p>
