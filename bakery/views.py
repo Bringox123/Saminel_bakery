@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import Category, Order, Product
@@ -48,6 +49,7 @@ def pos_terminal(request: HttpRequest):
     )
 
 
+@csrf_exempt
 @require_POST
 def sync_offline_orders(request: HttpRequest):
     try:
